@@ -1,12 +1,18 @@
 import * as fs from "fs";
+import zlib from "zlib";
 
 const args = process.argv.slice(2);
 const command = args[0];
 
+// enum Commands {
+//   Init = "init",
+//   Catfile = "cat-file",
+// }
+
 switch (command) {
   case "init":
     // You can use print statements as follows for debugging, they'll be visible when running tests.
-    console.error("Logs from your program will appear here!");
+    // console.error("Logs from your program will appear here!");
 
     // Uncomment this block to pass the first stage
     fs.mkdirSync(".git", { recursive: true });
