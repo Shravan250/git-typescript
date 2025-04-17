@@ -1,14 +1,6 @@
 import * as fs from "fs";
-import zlib from "zlib";
-
 const args = process.argv.slice(2);
 const command = args[0];
-
-// enum Commands {
-//   Init = "init",
-//   Catfile = "cat-file",
-// }
-let a = 0;
 
 switch (command) {
   case "init":
