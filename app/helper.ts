@@ -134,7 +134,7 @@ function writeObject(
     const blobHeader = Buffer.from(`${type} ${blobContentLength}\0`);
     const blob = Buffer.concat([blobHeader, blobContent]);
 
-    zlib.deflate(blob, (_, compressed) => {
+    zlib.deflateSync(blob, (_, compressed) => {
       const hash = crypto
         .createHash("sha1")
         .update(blob)
@@ -146,7 +146,7 @@ function writeObject(
       if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir, { recursive: true });
       }
-      fs.writeFileSync(objectPath, blob);
+      fs.writeFileSync(objectPath, compressed);
       reslove(hash);
     });
   });
