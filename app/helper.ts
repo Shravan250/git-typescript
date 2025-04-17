@@ -92,7 +92,7 @@ const toObjectEntry = (mode: string, hash: string, name: string): TreeEntry => {
   return { mode, hash, name };
 };
 
-export const writeTreeForFolder = (currentPath: string) => {
+export const writeTreeForFolder = (currentPath: string): Promise<string> => {
   const currentTreeEntries: TreeEntry[] = [];
   await Promise.all(
     fs.readdirSync(currentPath, { withFileTypes: true }).map(async (file) => {
