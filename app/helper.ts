@@ -140,3 +140,28 @@ export function writeTree(directory: string): string {
   }
   return generateHash(treeBuffer, "tree", true);
 }
+
+//commit-tree
+export function commitTree(args: string[]) {
+  let treeSha = args[1];
+  let parSha = args[3];
+  let message = args[5];
+  let bf = Buffer.concat([
+    Buffer.from(`tree ${treeSha}\n`),
+    Buffer.from(`parent ${parSha}\n`),
+    Buffer.from(`author <author@gmail.com> ${Date.now()} +0000\n`),
+    Buffer.from(`commiter <author@gmail.com> ${Date.now()} +0000\n\n`),
+    Buffer.from(`${message}\n`),
+  ]);
+  //   let header = Buffer.from(`commit ${bf.length}\0`);
+  //   bf = Buffer.concat([header, bf]);
+  //   let sha = crypto.createHash("sha1").update(bf).digest("hex");
+  //   let dName = sha.substring(0, 2);
+  //   let fName = sha.substring(2);
+  //   let compressed = zlib.deflateSync(bf);
+  //   fs.mkdirSync(`.git/objects/${dName}`);
+  //   fs.writeFileSync(`.git/objects/${dName}/${fName}`, compressed);
+
+  let sha = generateHash(bf, "commit", true);
+  process.stdout.write(sha);
+}

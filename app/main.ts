@@ -1,5 +1,6 @@
 import {
   catFileCommand,
+  commitTree,
   hashObjectCommand,
   initCommand,
   lsTreeCommand,
@@ -15,6 +16,7 @@ enum Command {
   HashObject = "hash-object",
   LsTree = "ls-tree",
   writeTree = "write-tree",
+  CommitTree = "commit-tree",
 }
 
 //flags and file paths
@@ -45,6 +47,9 @@ switch (command) {
   case Command.writeTree:
     const treeHash = writeTree(process.cwd());
     process.stdout.write(treeHash);
+    break;
+  case Command.CommitTree:
+    commitTree(args);
     break;
   default:
     throw new Error(`Unknown command ${command}`);
