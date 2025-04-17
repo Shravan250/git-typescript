@@ -3,6 +3,7 @@
 import * as fs from "fs";
 import zlib, { inflate, inflateSync } from "zlib";
 import crypto from "crypto";
+import path from "path";
 
 export const initCommand = () => {
   // You can use print statements as follows for debugging, they'll be visible when running tests.
