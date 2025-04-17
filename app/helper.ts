@@ -65,5 +65,6 @@ export const lsTreeCommand = (treeHash: string) => {
     .slice(1, -1)
     .reduce((acc: string[], e) => [...acc, e.split(" ").at(-1) as string], [])
     .join("\n");
-  process.stdout.write(treeContent);
+  console.log(treeContent);
+  //   process.stdout.write(treeContent);
 };
