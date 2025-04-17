@@ -3,7 +3,7 @@ import {
   hashObjectCommand,
   initCommand,
   lsTreeCommand,
-  writeTreeForFolder,
+  writeTree,
 } from "./helper";
 
 const args = process.argv.slice(2);
@@ -43,8 +43,8 @@ switch (command) {
     break;
 
   case Command.writeTree:
-    const hash = await writeTreeForFolder(".");
-    process.stdout.write(hash);
+    const treeHash = writeTree(process.cwd());
+    process.stdout.write(treeHash);
     break;
   default:
     throw new Error(`Unknown command ${command}`);

@@ -73,89 +73,59 @@ export const lsTreeCommand = (treeHash: string) => {
 };
 
 //write tree
-type TreeEntry = {
-  mode: string;
-  name: string;
-  hash: string;
-};
-const createTreeString = ({ mode, hash, name }: TreeEntry) => {
-  const hexHashToBuffer = Buffer.from(hash, "hex");
-
-  const bufferone = Buffer.concat([
-    Buffer.from(`${mode} ${name}\0`),
-    hexHashToBuffer,
-  ]);
-
-  return bufferone;
-};
-
-const toObjectEntry = (mode: string, hash: string, name: string): TreeEntry => {
-  return { mode, hash, name };
-};
-
-export const writeTreeForFolder = async (
-  currentPath: string
-): Promise<string> => {
-  const currentTreeEntries: TreeEntry[] = [];
-  await Promise.all(
-    fs.readdirSync(currentPath, { withFileTypes: true }).map(async (file) => {
-      if (file.name === ".git") return;
-      if (file.isDirectory()) {
-        const aaa = await writeTreeForFolder(path.join(currentPath, file.name));
-        currentTreeEntries.push(toObjectEntry("40000", aaa, file.name));
-      } else if (file.isSymbolicLink()) {
-        throw new Error("Symbolic links are not supported");
-      } else if (file.isFile()) {
-        const hash = await hashObject(path.join(currentPath, file.name));
-        const isExecutable = !!(
-          fs.statSync(path.join(currentPath, file.name)).mode & 0o111
-        );
-        const mode = isExecutable ? "100755" : "100644";
-        currentTreeEntries.push(toObjectEntry(mode, hash, file.name));
-      } else {
-        throw new Error("Error");
-      }
-    })
-  );
-
-  const sortedEntries = currentTreeEntries
-    .sort((a, b) => a.name.localeCompare(b.name))
-    .map(createTreeString);
-
-  return await writeObject(Buffer.concat(sortedEntries), "tree");
-};
-
-function writeObject(
-  blobContent: Buffer,
-  type: "blob" | "tree"
-): Promise<string> {
-  return new Promise((reslove) => {
-    const blobContentLength = blobContent.length;
-    const blobHeader = Buffer.from(`${type} ${blobContentLength}\0`);
-    const blob = Buffer.concat([blobHeader, blobContent]);
-
-    zlib.deflateSync(blob, (_, compressed) => {
-      const hash = crypto
-        .createHash("sha1")
-        .update(blob)
-        .digest("hex")
-        .toString();
-      const dir = `.git/objects/${hash.slice(0, 2)}`;
-      const objectPath = `${dir}/${hash.slice(2)}`;
-
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
-      }
-      fs.writeFileSync(objectPath, compressed);
-      reslove(hash);
-    });
-  });
+function generateHash(bufferValue: Buffer, type: string, write: boolean) {
+  const header = `${type} ${bufferValue.length}\0`;
+  const store = Buffer.concat([Buffer.from(header), bufferValue]);
+  const hash = crypto.createHash("sha1").update(store).digest("hex");
+  if (write) {
+    const dir = path.join(".git", "objects", hash.slice(0, 2));
+    const filePath = path.join(dir, hash.slice(2));
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(filePath, zlib.deflateSync(store));
+  }
+  return hash;
 }
-
-function hashObject(filePath: string): Promise<string> {
-  return new Promise((reslove) => {
-    fs.readFile(filePath, (err, blobContent) => {
-      reslove(writeObject(blobContent, "blob"));
-    });
+export function writeTree(directory: string): string {
+  let treeBuffer = Buffer.alloc(0);
+  let entriesArray = [];
+  let fileEntries = fs.readdirSync(directory, {
+    withFileTypes: true,
   });
+  for (const entry of fileEntries) {
+    if (entry.name === ".git") {
+      continue;
+    }
+    let mode: string;
+    let hash: string;
+    const pathName = path.join(directory, entry.name);
+    if (entry.isFile()) {
+      mode = "100644";
+      const fileContent = fs.readFileSync(pathName);
+      hash = generateHash(fileContent, "blob", true);
+    } else {
+      mode = "40000";
+      hash = writeTree(pathName);
+    }
+    // const entryHashContent = Buffer.concat([
+    //     Buffer.from(`${mode} ${entry.name}\0`),
+    //     Buffer.from(hash, 'hex')
+    // ])
+    // treeBuffer = Buffer.concat([treeBuffer, entryHashContent]);
+    entriesArray.push({
+      mode: mode,
+      hash: hash,
+      name: entry.name,
+    });
+  }
+  entriesArray.sort((a, b) => {
+    return b.mode.localeCompare(a.mode);
+  });
+  for (const entry of entriesArray) {
+    const entryHashContent = Buffer.concat([
+      Buffer.from(`${entry.mode} ${entry.name}\0`),
+      Buffer.from(entry.hash, "hex"),
+    ]);
+    treeBuffer = Buffer.concat([treeBuffer, entryHashContent]);
+  }
+  return generateHash(treeBuffer, "tree", true);
 }
