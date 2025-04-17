@@ -75,16 +75,27 @@ export const lsTreeCommand = (treeHash: string) => {
 //write tree
 function generateHash(bufferValue: Buffer, type: string, write: boolean) {
   const header = `${type} ${bufferValue.length}\0`;
-  const store = Buffer.concat([Buffer.from(header), bufferValue]);
+  const store = Buffer.concat([Buffer.from(header, "utf8"), bufferValue]);
   const hash = crypto.createHash("sha1").update(store).digest("hex");
+
   if (write) {
     const dir = path.join(".git", "objects", hash.slice(0, 2));
     const filePath = path.join(dir, hash.slice(2));
-    fs.mkdirSync(dir, { recursive: true });
+
+    try {
+      fs.mkdirSync(dir, { recursive: true });
+    } catch (err: any) {
+      if (err.code !== "EEXIST") {
+        throw err;
+      }
+    }
+
     fs.writeFileSync(filePath, zlib.deflateSync(store));
   }
+
   return hash;
 }
+
 export function writeTree(directory: string): string {
   let treeBuffer = Buffer.alloc(0);
   let entriesArray = [];
