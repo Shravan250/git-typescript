@@ -118,7 +118,7 @@ export function writeTree(directory: string): string {
     });
   }
   entriesArray.sort((a, b) => {
-    return b.mode.localeCompare(a.mode);
+    return a.name.localeCompare(b.name);
   });
   for (const entry of entriesArray) {
     const entryHashContent = Buffer.concat([
