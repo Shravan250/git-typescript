@@ -8,6 +8,7 @@ const command = args[0];
 //   Init = "init",
 //   Catfile = "cat-file",
 // }
+let a = 0;
 
 switch (command) {
   case "init":
