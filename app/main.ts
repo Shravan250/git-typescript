@@ -1,13 +1,10 @@
-import * as fs from "fs";
-import zlib from "zlib";
-import crypto from "crypto";
 import {
   catFileCommand,
   hashObjectCommand,
   initCommand,
   lsTreeCommand,
+  writeTreeForFolder,
 } from "./helper";
-import { get } from "http";
 
 const args = process.argv.slice(2);
 const command = args[0];
@@ -17,6 +14,7 @@ enum Command {
   Catfile = "cat-file",
   HashObject = "hash-object",
   LsTree = "ls-tree",
+  writeTree = "write-tree",
 }
 
 //flags and file paths
@@ -42,6 +40,11 @@ switch (command) {
 
   case Command.LsTree:
     lsTreeCommand(args[2]);
+    break;
+
+  case Command.writeTree:
+    const hash = await writeTreeForFolder(".");
+    process.stdout.write(hash);
     break;
   default:
     throw new Error(`Unknown command ${command}`);
