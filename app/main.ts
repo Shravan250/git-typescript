@@ -1,5 +1,6 @@
 import * as fs from "fs";
 import zlib from "zlib";
+import crypto from "crypto";
 
 const args = process.argv.slice(2);
 const command = args[0];
@@ -7,7 +8,12 @@ const command = args[0];
 enum Command {
   Init = "init",
   Catfile = "cat-file",
+  HashObject = "hash-object",
 }
+
+//flags and file paths
+const getFlags = () => args[1].slice(1).split("");
+const getFilePath = () => args[2];
 
 switch (command) {
   case Command.Init:
@@ -32,8 +38,7 @@ switch (command) {
     // process.stdout.write(blobContent);
 
     //consise solution
-    const flag = args[1];
-    if (flag == "-p") {
+    if (getFlags().includes("p")) {
       const file = fs.readFileSync(
         `.git/objects/${args[2].slice(0, 2)}/${args[2].slice(2)}`
       );
@@ -45,6 +50,28 @@ switch (command) {
     }
     break;
 
+  case Command.HashObject:
+    const data = fs.readFileSync(getFilePath()) as unknown as Uint8Array;
+    const metaData = Buffer.from(
+      `blob ${data.length}\0`
+    ) as unknown as Uint8Array;
+    const content = Buffer.concat([metaData, data]) as unknown as Uint8Array;
+
+    //hashing
+    const hash = crypto.createHash("sha1").update(content).digest("hex");
+    process.stdout.write(hash);
+
+    if (getFlags().includes("w")) {
+      const compressed = zlib.deflateSync(
+        new Uint8Array(content)
+      ) as unknown as Uint8Array;
+      const dir = `.git/objects/${hash.slice(0, 2)}`;
+      const objectPath = `${dir}/${hash.slice(2)}`;
+      fs.mkdirSync(dir, { recursive: true });
+      fs.writeFileSync(objectPath, compressed);
+    }
+
+    break;
   default:
     throw new Error(`Unknown command ${command}`);
 }
