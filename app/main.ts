@@ -17,6 +17,7 @@ enum Command {
   LsTree = "ls-tree",
   writeTree = "write-tree",
   CommitTree = "commit-tree",
+  Clone = "clone",
 }
 
 //flags and file paths
