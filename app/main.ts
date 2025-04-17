@@ -1,7 +1,12 @@
 import * as fs from "fs";
 import zlib from "zlib";
 import crypto from "crypto";
-import { catFileCommand, hashObjectCommand, initCommand } from "./helper";
+import {
+  catFileCommand,
+  hashObjectCommand,
+  initCommand,
+  lsTreeCommand,
+} from "./helper";
 import { get } from "http";
 
 const args = process.argv.slice(2);
